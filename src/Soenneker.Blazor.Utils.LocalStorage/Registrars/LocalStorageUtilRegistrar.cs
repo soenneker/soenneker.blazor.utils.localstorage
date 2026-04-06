@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Soenneker.Blazor.Utils.LocalStorage.Abstract;
-using Soenneker.Blazor.Utils.ResourceLoader.Registrars;
+using Soenneker.Blazor.Utils.ModuleImport.Registrars;
 
 namespace Soenneker.Blazor.Utils.LocalStorage.Registrars;
 
@@ -15,7 +15,7 @@ public static class LocalStorageUtilRegistrar
     /// </summary>
     public static IServiceCollection AddLocalStorageUtilAsScoped(this IServiceCollection services)
     {
-        services.AddResourceLoaderAsScoped()
+        services.AddModuleImportUtilAsScoped()
                 .TryAddScoped<ILocalStorageInterop, LocalStorageInterop>();
 
         services.TryAddScoped<ILocalStorageUtil, LocalStorageUtil>();
