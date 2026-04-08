@@ -12,7 +12,7 @@ namespace Soenneker.Blazor.Utils.LocalStorage;
 /// <inheritdoc cref="ILocalStorageInterop"/>
 public sealed class LocalStorageInterop : ILocalStorageInterop
 {
-    private const string _modulePath = "/_content/Soenneker.Blazor.Utils.LocalStorage/js/localstorageinterop.js";
+    private const string _modulePath = "_content/Soenneker.Blazor.Utils.LocalStorage/js/localstorageinterop.js";
 
     private readonly IModuleImportUtil _moduleImportUtil;
     private readonly CancellationScope _cancellationScope = new();
