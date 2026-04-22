@@ -1,20 +1,19 @@
 using Soenneker.Blazor.Utils.LocalStorage.Abstract;
-using Soenneker.Tests.FixturedUnit;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Soenneker.Blazor.Utils.LocalStorage.Tests;
 
-[Collection("Collection")]
-public sealed class LocalStorageUtilTests : FixturedUnitTest
+[ClassDataSource<Host>(Shared = SharedType.PerTestSession)]
+public sealed class LocalStorageUtilTests : HostedUnitTest
 {
     private readonly ILocalStorageUtil _blazorlibrary;
 
-    public LocalStorageUtilTests(Fixture fixture, ITestOutputHelper output) : base(fixture, output)
+    public LocalStorageUtilTests(Host host) : base(host)
     {
         _blazorlibrary = Resolve<ILocalStorageUtil>(true);
     }
 
-    [Fact]
+    [Test]
     public void Default()
     {
 
