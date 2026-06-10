@@ -7,64 +7,64 @@
 
 <PageTitle>LocalStorage Demo</PageTitle>
 
-<Div Space="Space.Y.Is6">
-    <DemoPanel Title="Overview" Description="Persistent localStorage for this origin.">
-        <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is4">
+<Div Space="Space.Y.Is6" >
+    <DemoPanel Title="Overview" Description="Persistent localStorage for this origin." >
+        <Div Display="Display.Flex" Flex=@("flex-wrap") Gap="Gap.Is4" >
             <Div>
-                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Entries</Paragraph>
-                <Paragraph Margin="Margin.Is0" FontWeight="FontWeight.Semibold">@_length</Paragraph>
+                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground" >Entries</Paragraph>
+                <Paragraph Margin="Margin.Is0" FontWeight="FontWeight.Semibold" >@_length</Paragraph>
             </Div>
             <Div>
-                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">Selected key</Paragraph>
-                <Paragraph Margin="Margin.Is0" FontWeight="FontWeight.Semibold" Style="word-break: break-all;">@_key</Paragraph>
+                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground" >Selected key</Paragraph>
+                <Paragraph Margin="Margin.Is0" FontWeight="FontWeight.Semibold" Style="word-break: break-all;" >@_key</Paragraph>
             </Div>
             <Div>
-                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">State</Paragraph>
-                <Paragraph Margin="Margin.Is0">@StatusLabel</Paragraph>
+                <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground" >State</Paragraph>
+                <Paragraph Margin="Margin.Is0" >@StatusLabel</Paragraph>
             </Div>
         </Div>
     </DemoPanel>
 
-    <Grid Columns="Columns.Is1.OnLg.Is2" Gap="Gap.Is4">
-        <DemoPanel Title="Commands" Description="Set, read, remove, or clear keys.">
+    <Grid Columns="GridCols.Is1.OnLg.Is2" Gap="Gap.Is4" >
+        <DemoPanel Title="Commands" Description="Set, read, remove, or clear keys." >
             <Field>
-                <FieldLabel For="ls-key">Storage key</FieldLabel>
+                <FieldLabel For="ls-key" >Storage key</FieldLabel>
                 <FieldBody>
                     <Input Id="ls-key" @bind-Value="_key" />
                 </FieldBody>
             </Field>
             <Field>
-                <FieldLabel For="ls-value">Value</FieldLabel>
+                <FieldLabel For="ls-value" >Value</FieldLabel>
                 <FieldBody>
                     <Input Id="ls-value" @bind-Value="_value" />
                 </FieldBody>
             </Field>
             <DemoButtonRow>
-                <Button OnClick="SetValue">Set value</Button>
-                <Button OnClick="GetValue" Variant="ButtonVariant.Secondary">Get value</Button>
-                <Button OnClick="RemoveValue" Variant="ButtonVariant.Outline">Remove key</Button>
-                <Button OnClick="ClearAll" Variant="ButtonVariant.Destructive">Clear all</Button>
-                <Button OnClick="RefreshState" Variant="ButtonVariant.Outline">Refresh</Button>
+                <Button OnClick="SetValue" >Set value</Button>
+                <Button OnClick="GetValue" Variant="ButtonVariant.Secondary" >Get value</Button>
+                <Button OnClick="RemoveValue" Variant="ButtonVariant.Outline" >Remove key</Button>
+                <Button OnClick="ClearAll" Variant="ButtonVariant.Destructive" >Clear all</Button>
+                <Button OnClick="RefreshState" Variant="ButtonVariant.Outline" >Refresh</Button>
             </DemoButtonRow>
-            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">@_status</Paragraph>
+            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground" >@_status</Paragraph>
         </DemoPanel>
 
-        <DemoPanel Title="Loaded value" Description="Result of the last get operation.">
-            <PreCode Class="demo-pre" Highlight="false">@(_loadedValue ?? "(null)")</PreCode>
+        <DemoPanel Title="Loaded value" Description="Result of the last get operation." >
+            <PreCode Class="demo-pre" Highlight="false" >@(_loadedValue ?? "(null)")</PreCode>
         </DemoPanel>
     </Grid>
 
-    <DemoPanel Title="Keys" Description="Tap a key to select it.">
+    <DemoPanel Title="Keys" Description="Tap a key to select it." >
         @if (_keys.Count == 0)
         {
-            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground">No keys yet.</Paragraph>
+            <Paragraph Margin="Margin.Is0" TextSize="TextSize.Sm" TextColor="TextColor.MutedForeground" >No keys yet.</Paragraph>
         }
         else
         {
             <DemoButtonRow>
                 @foreach (string key in _keys)
                 {
-                    <Button OnClick="@(_ => SelectKey(key))" Variant="ButtonVariant.Outline" Size="ButtonSize.Sm">@key</Button>
+                    <Button OnClick="@(_ => SelectKey(key))" Variant="ButtonVariant.Outline" ButtonSize="ButtonSize.Sm" >@key</Button>
                 }
             </DemoButtonRow>
         }
@@ -131,4 +131,6 @@
         _status = $"Selected '{key}'.";
         await RefreshState();
     }
+
 }
+
