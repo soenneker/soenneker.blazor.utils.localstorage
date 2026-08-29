@@ -6,53 +6,88 @@
 
 # Soenneker.Blazor.Utils.LocalStorage
 
-Blazor interop for browser `localStorage` operations.
+A scoped Blazor utility for storing strings and JSON-serialized .NET values in the browser’s `localStorage`.
 
-## Install
+Values persist across page loads and browser restarts for the same origin, subject to browser policy and user clearing. For tab-lifetime data, use session storage instead.
+
+## Installation
 
 ```bash
 dotnet add package Soenneker.Blazor.Utils.LocalStorage
 ```
 
-## Quick start
-
 ```csharp
 using Soenneker.Blazor.Utils.LocalStorage.Registrars;
-using Microsoft.Extensions.DependencyInjection;
 
-var services = new ServiceCollection();
-var result = services.AddLocalStorageUtilAsScoped();
+builder.Services.AddLocalStorageUtilAsScoped();
 ```
 
-Adds `ILocalStorageInterop` and `ILocalStorageUtil` as scoped services.
+```razor
+@using Soenneker.Blazor.Utils.LocalStorage.Abstract
+@inject ILocalStorageUtil LocalStorage
+```
 
-## What you get
+Storage calls require browser interop. Use the service after interactive rendering, not during server prerendering.
 
-- `ILocalStorageInterop` — Blazor interop for browser `localStorage` operations.
-- `ILocalStorageUtil` — A higher-level Blazor utility for browser `localStorage` built on top of `ILocalStorageInterop`.
-- `LocalStorageUtilRegistrar` — Registration for the interop and utility services.
+## Store and retrieve strings
 
-## API at a glance
+```csharp
+await LocalStorage.Set("myapp:theme", "dark");
 
-| API | What it does | Result / important behavior |
-| --- | --- | --- |
-| `ILocalStorageInterop.Initialize(cancellationToken)` | Ensures the JavaScript module for this package has been loaded and initialized. | A task that completes when the Local Storage is ready for use. |
-| `ILocalStorageInterop.Get(key, cancellationToken)` | Gets a stored string value by key, or null if the key does not exist. | A task whose result is the text returned by get. |
-| `ILocalStorageInterop.Remove(key, cancellationToken)` | Removes a stored value by key. | A task that completes when the remove operation is complete. |
-| `ILocalStorageInterop.Clear(cancellationToken)` | Clears all browser local storage entries. | A task that completes when the Local Storage has been cleared. |
-| `ILocalStorageInterop.ContainsKey(key, cancellationToken)` | Returns whether the specified key exists in browser local storage. | true if the specified key exists in the target store; otherwise, false. |
-| `ILocalStorageInterop.GetKeys(cancellationToken)` | Returns all local storage keys in index order. | The matching keys as a materialized collection. |
-| `ILocalStorageInterop.GetLength(cancellationToken)` | Returns the total number of local storage entries. | A task whose result is the requested value. |
-| `ILocalStorageUtil.Initialize(cancellationToken)` | Ensures the underlying JavaScript module has been loaded and is ready for use. | A task that completes when the Local Storage is ready for use. |
-| `ILocalStorageUtil.Get(key, cancellationToken)` | Gets a stored string value by key, or null if the key does not exist. | A task whose result is the text returned by get. |
-| `ILocalStorageUtil.Remove(key, cancellationToken)` | Removes a stored value by key. | A task that completes when the remove operation is complete. |
-| `ILocalStorageUtil.Clear(cancellationToken)` | Clears all browser local storage entries. | A task that completes when the Local Storage has been cleared. |
-| `ILocalStorageUtil.ContainsKey(key, cancellationToken)` | Returns whether the specified key exists in browser local storage. | true if the specified key exists in the target store; otherwise, false. |
-| `ILocalStorageUtil.GetKeys(cancellationToken)` | Returns all local storage keys in index order. | The matching keys as a materialized collection. |
-| `ILocalStorageUtil.GetLength(cancellationToken)` | Returns the total number of local storage entries. | A task whose result is the requested value. |
-| `LocalStorageUtilRegistrar.AddLocalStorageUtilAsScoped(services)` | Adds `ILocalStorageInterop` and `ILocalStorageUtil` as scoped services. | The same service collection, so additional registrations can be chained. |
+string? theme = await LocalStorage.Get("myapp:theme");
+bool exists = await LocalStorage.ContainsKey("myapp:theme");
+```
 
-## Practical notes
+`Get` returns `null` for a missing key and preserves an existing empty string. Keys must be non-empty, and stored values cannot be null.
 
-- Cancellation stops pending work; it does not undo work that has already completed.
-- Dispose instances you own when their scope ends so held resources can be released.
+`Initialize()` is optional. It eagerly loads the JavaScript module but does not read or create a storage entry.
+
+## Store typed values
+
+```csharp
+public sealed record LayoutPreference(bool Compact, int PageSize);
+
+await LocalStorage.Set(
+    "myapp:layout",
+    new LayoutPreference(Compact: true, PageSize: 25));
+
+LayoutPreference? preference =
+    await LocalStorage.Get<LayoutPreference>("myapp:layout");
+```
+
+Non-string values are JSON-serialized with web defaults. Malformed or incompatible stored JSON causes deserialization to throw. Stored model shapes should be versioned or migrated when they change.
+
+`Get<T>` returns the default value when the key is missing, when a non-string stored value is blank, or when JSON deserializes as `null`. Use `ContainsKey` when the missing-key distinction matters.
+
+## Remove and inspect entries
+
+```csharp
+await LocalStorage.Remove("myapp:layout");
+
+IReadOnlyList<string> keys = await LocalStorage.GetKeys();
+int count = await LocalStorage.GetLength();
+```
+
+Key order is controlled by the browser and should not be used as a stable sort order. Prefix application keys, such as `myapp:`, to avoid collisions with other code on the same origin.
+
+`Clear` removes every local-storage entry for the origin, including entries created by unrelated libraries in the same application:
+
+```csharp
+await LocalStorage.Clear();
+```
+
+Prefer removing known, namespaced keys individually unless deleting all origin storage is explicitly intended.
+
+## Concurrency and failures
+
+Each browser storage operation is synchronous and atomic, but a .NET read-modify-write sequence is not. Another tab can change a value between calls. This package does not expose the browser `storage` event or provide cross-tab locking.
+
+Writes can throw because storage is disabled, unavailable in the browsing mode, or over quota. Large values also block the browser’s main thread during the underlying operation. Handle interop exceptions and use IndexedDB for larger datasets.
+
+Cancellation stops waiting for Blazor interop; it cannot undo a synchronous browser write that already completed.
+
+## Security
+
+Local storage is readable and writable by JavaScript running on the origin. Do not store passwords, bearer tokens, private keys, server session identifiers, or other high-value secrets. An XSS vulnerability can expose or modify every stored value.
+
+Treat retrieved content as untrusted input. Validate it before using it in authorization logic, URLs, queries, file operations, or rendered output. Local storage is a client-side convenience, not an authoritative data store.

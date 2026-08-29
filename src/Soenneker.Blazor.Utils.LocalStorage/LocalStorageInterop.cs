@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +20,7 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
 
     public LocalStorageInterop(IModuleImportUtil moduleImportUtil)
     {
-        _moduleImportUtil = moduleImportUtil;
+        _moduleImportUtil = moduleImportUtil ?? throw new ArgumentNullException(nameof(moduleImportUtil));
     }
 
     public async ValueTask Initialize(CancellationToken cancellationToken = default)
@@ -35,8 +36,7 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
 
     public async ValueTask<string?> Get(string key, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return null;
+        ValidateKey(key);
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
@@ -49,22 +49,21 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
 
     public async ValueTask Set(string key, string value, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return;
+        ValidateKey(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
         using (source)
         {
             IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            await module.InvokeVoidAsync("set", linked, key, value ?? "");
+            await module.InvokeVoidAsync("set", linked, key, value);
         }
     }
 
     public async ValueTask Remove(string key, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return;
+        ValidateKey(key);
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
@@ -88,8 +87,7 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
 
     public async ValueTask<bool> ContainsKey(string key, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(key))
-            return false;
+        ValidateKey(key);
 
         CancellationToken linked = _cancellationScope.CancellationToken.Link(cancellationToken, out CancellationTokenSource? source);
 
@@ -129,7 +127,12 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async ValueTask DisposeAsync()
     {
-        await _moduleImportUtil.DisposeContentModule(_modulePath);
         await _cancellationScope.DisposeAsync();
+        await _moduleImportUtil.DisposeContentModule(_modulePath);
+    }
+
+    private static void ValidateKey(string key)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
     }
 }

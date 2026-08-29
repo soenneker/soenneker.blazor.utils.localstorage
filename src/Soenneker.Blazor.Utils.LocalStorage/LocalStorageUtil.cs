@@ -62,6 +62,7 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
     public ValueTask Set<T>(string key, T value, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         if (value is string stringValue)
             return _interop.Set(key, stringValue, cancellationToken);
