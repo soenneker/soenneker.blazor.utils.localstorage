@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Blazor.Utils.LocalStorage.Abstract;
 
 namespace Soenneker.Blazor.Utils.LocalStorage;
 
-/// <inheritdoc cref="ILocalStorageUtil"/>
 public sealed class LocalStorageUtil : ILocalStorageUtil
 {
     private readonly ILocalStorageInterop _interop;
@@ -32,6 +33,8 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         return _interop.Get(key, cancellationToken);
     }
 
+    [RequiresUnreferencedCode("JSON deserialization uses reflection. Use the overload accepting JsonTypeInfo<T> for trimming.")]
+    [RequiresDynamicCode("JSON deserialization may require runtime code generation. Use the overload accepting JsonTypeInfo<T> for AOT.")]
     public async ValueTask<T?> Get<T>(string key, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -51,6 +54,24 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         return JsonSerializer.Deserialize<T>(value, _serializerOptions);
     }
 
+    public async ValueTask<T?> Get<T>(string key, JsonTypeInfo<T> typeInfo, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+        ArgumentNullException.ThrowIfNull(typeInfo);
+
+        string? value = await _interop.Get(key, cancellationToken).ConfigureAwait(false);
+        if (value is null)
+            return default;
+
+        if (typeof(T) == typeof(string))
+            return (T?) (object) value;
+
+        if (string.IsNullOrWhiteSpace(value))
+            return default;
+
+        return JsonSerializer.Deserialize(value, typeInfo);
+    }
+
     public ValueTask Set(string key, string value, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -59,6 +80,8 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         return _interop.Set(key, value, cancellationToken);
     }
 
+    [RequiresUnreferencedCode("JSON serialization uses reflection. Use the overload accepting JsonTypeInfo<T> for trimming.")]
+    [RequiresDynamicCode("JSON serialization may require runtime code generation. Use the overload accepting JsonTypeInfo<T> for AOT.")]
     public ValueTask Set<T>(string key, T value, CancellationToken cancellationToken = default)
     {
         ValidateKey(key);
@@ -68,6 +91,19 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
             return _interop.Set(key, stringValue, cancellationToken);
 
         string json = JsonSerializer.Serialize(value, _serializerOptions);
+        return _interop.Set(key, json, cancellationToken);
+    }
+
+    public ValueTask Set<T>(string key, T value, JsonTypeInfo<T> typeInfo, CancellationToken cancellationToken = default)
+    {
+        ValidateKey(key);
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentNullException.ThrowIfNull(typeInfo);
+
+        if (value is string stringValue)
+            return _interop.Set(key, stringValue, cancellationToken);
+
+        string json = JsonSerializer.Serialize(value, typeInfo);
         return _interop.Set(key, json, cancellationToken);
     }
 
