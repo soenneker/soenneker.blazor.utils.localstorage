@@ -11,7 +11,7 @@ namespace Soenneker.Blazor.Utils.LocalStorage.Tests;
 public sealed class LocalStorageMetadataTests
 {
     [Test]
-    public async Task SourceGeneratedMetadataRoundTripsWithoutReflection()
+    public async ValueTask SourceGeneratedMetadataRoundTripsWithoutReflection()
     {
         var interop = new StorageStub();
         ILocalStorageUtil storage = new LocalStorageUtil(interop);
