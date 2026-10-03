@@ -13,7 +13,7 @@ namespace Soenneker.Blazor.Utils.LocalStorage;
 /// <inheritdoc cref="ILocalStorageInterop"/>
 public sealed class LocalStorageInterop : ILocalStorageInterop
 {
-    private const string _modulePath = "_content/Soenneker.Blazor.Utils.LocalStorage/js/localstorageinterop.js";
+    private const string _modulePath = "./_content/Soenneker.Blazor.Utils.LocalStorage/js/localstorageinterop.js";
 
     private readonly IModuleImportUtil _moduleImportUtil;
     private readonly CancellationScope _cancellationScope = new();
@@ -29,8 +29,7 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
 
         using (source)
         {
-            IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            await module.InvokeVoidAsync("initialize", linked);
+            await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
         }
     }
 
@@ -105,8 +104,8 @@ public sealed class LocalStorageInterop : ILocalStorageInterop
         using (source)
         {
             IJSObjectReference module = await _moduleImportUtil.GetContentModuleReference(_modulePath, linked);
-            var keys = await module.InvokeAsync<List<string>>("getKeys", linked);
-            return keys ?? [];
+            var keys = await module.InvokeAsync<string[]>("getKeys", linked);
+            return keys ?? Array.Empty<string>();
         }
     }
 
