@@ -15,14 +15,14 @@ public sealed class LibrarianStorageTests
     {
         var runtime = new SnapshotRuntime();
         await using var modules = new ModuleImportUtil(runtime);
-        await using var first = new LocalStorageInterop(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
+        await using var first = new LocalStorageUtil(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
         await first.Set("Key", "plain text");
         await first.Set("key", "{\"number\":42}");
         await first.Set("emoji-😀", "");
         if (runtime.Backend != "localStorage" || runtime.Snapshot is null)
             throw new InvalidOperationException("The Librarian browser backend was not used.");
 
-        await using var second = new LocalStorageInterop(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
+        await using var second = new LocalStorageUtil(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
         if (await second.Get("Key") != "plain text" || await second.Get("key") != "{\"number\":42}")
             throw new InvalidOperationException("Stored documents did not survive reopening.");
         if (!(await second.GetKeys()).Order().SequenceEqual(new[] { "Key", "key", "emoji-😀" }.Order()))
@@ -40,7 +40,7 @@ public sealed class LibrarianStorageTests
     {
         var runtime = new SnapshotRuntime();
         await using var modules = new ModuleImportUtil(runtime);
-        await using var storage = new LocalStorageInterop(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
+        await using var storage = new LocalStorageUtil(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
         await storage.Set("key", "original");
         runtime.RejectNextWrite = true;
         try
@@ -63,7 +63,7 @@ public sealed class LibrarianStorageTests
     {
         var runtime = new SnapshotRuntime();
         await using var modules = new ModuleImportUtil(runtime);
-        await using var storage = new LocalStorageInterop(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
+        await using var storage = new LocalStorageUtil(modules, NullLogger<LocalStorageLibrarianDatabase>.Instance);
         await storage.Set("key", "original");
         runtime.RejectNextWrite = true;
         try
