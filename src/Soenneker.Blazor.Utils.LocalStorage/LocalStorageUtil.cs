@@ -1,3 +1,4 @@
+using Soenneker.Extensions.ValueTask;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -40,7 +41,7 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         ValidateKey(key);
 
         string? value = await _interop.Get(key, cancellationToken)
-                                      .ConfigureAwait(false);
+                                      .NoSync();
 
         if (value is null)
             return default;
@@ -59,7 +60,7 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         ValidateKey(key);
         ArgumentNullException.ThrowIfNull(typeInfo);
 
-        string? value = await _interop.Get(key, cancellationToken).ConfigureAwait(false);
+        string? value = await _interop.Get(key, cancellationToken).NoSync();
         if (value is null)
             return default;
 
