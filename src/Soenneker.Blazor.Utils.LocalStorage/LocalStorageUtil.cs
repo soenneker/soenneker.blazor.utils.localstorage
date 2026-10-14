@@ -174,7 +174,7 @@ public sealed class LocalStorageUtil : ILocalStorageUtil
         finally
         {
             // Never flush or replay an uncertain write during cleanup.
-            await database.DiscardAsync().NoSync();
+            await database.Discard().NoSync();
         }
     }
     // Snapshot IDs are case-insensitive. Hex-encoded UTF-16 preserves browser key identity.
