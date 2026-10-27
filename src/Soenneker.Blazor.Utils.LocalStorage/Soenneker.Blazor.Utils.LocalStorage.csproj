@@ -43,6 +43,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Soenneker.Librarian.LocalStorage" Version="11.0.124" />
+        <PackageReference Include="Soenneker.Librarian.LocalStorage" Version="11.0.125" />
     </ItemGroup>
 </Project>
